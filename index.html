@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Biblioteca Libertária</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex flex-col">
+        <!-- Cabeçalho -->
+        <header class="bg-black text-white py-4 shadow-md">
+            <div class="container mx-auto px-4 flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-book-open text-3xl"></i>
+                    <h1 class="text-2xl font-bold">Biblioteca Libertária</h1>
+                </div>
+                <nav class="space-x-4">
+                    <a href="#" class="hover:text-gray-300">Início</a>
+                    <a href="#" class="hover:text-gray-300">Categorias</a>
+                    <a href="#" class="hover:text-gray-300">Sobre</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Conteúdo Principal -->
+        <main class="flex-grow container mx-auto px-4 py-8">
+            <!-- Barra de Busca -->
+            <div class="mb-8">
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Busque por título, autor ou tema" 
+                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-black"
+                    >
+                    <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="mb-6 flex justify-between items-center">
+                <div class="space-x-2">
+                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm">Economia</button>
+                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm">Política</button>
+                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm">Filosofia</button>
+                </div>
+                <select class="border rounded-full px-3 py-1 text-sm">
+                    <option>Mais Relevantes</option>
+                    <option>Mais Recentes</option>
+                    <option>Alfabético</option>
+                </select>
+            </div>
+
+            <!-- Galeria de Livros -->
+            <div id="booksContainer" class="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Livros serão inseridos aqui -->
+            </div>
+        </main>
+
+        <!-- Rodapé -->
+        <footer class="bg-black text-white py-6">
+            <div class="container mx-auto px-4 text-center">
+                <p>&copy; 2024 Biblioteca Libertária. Todos os direitos reservados.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const libertarianBooks = [
+            {
+                title: 'A Sociedade Livre',
+                author: 'Rothbard',
+                description: 'Análise profunda sobre os princípios da liberdade individual e economia.',
+                pdfUrl: 'https://exemplo.com/rothbard.pdf',
+                tags: ['economia', 'liberdade'],
+                coverUrl: 'https://via.placeholder.com/200x300.png?text=Livro+1'
+            },
+            {
+                title: 'Capitalismo e Liberdade',
+                author: 'Milton Friedman',
+                description: 'Obra clássica sobre o papel do livre mercado na sociedade.',
+                pdfUrl: 'https://pdfcoffee.com/qdownload/capitalismo-e-liberdade-friedman-pdf-free.html',
+                tags: ['capitalismo', 'economia'],
+                coverUrl: 'https://pdfcoffee.com/img/200x200/capitalismo-e-liberdade-friedman-pdf-free.jpg'
+            },
+            {
+                title: 'O Caminho da Servidão',
+                author: 'Hayek',
+                description: 'Crítica ao socialismo e defesa da liberdade econômica.',
+                pdfUrl: 'https://exemplo.com/hayek.pdf',
+                tags: ['política', 'socialismo'],
+                coverUrl: 'https://via.placeholder.com/200x300.png?text=Livro+3'
+            }
+        ];
+
+        let activeFilter = null;
+        let currentSort = 'relevance';
+
+        function searchBooks() {
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const booksContainer = document.getElementById('booksContainer');
+            booksContainer.innerHTML = '';
+
+            let filteredBooks = libertarianBooks.filter(book => 
+                (book.title.toLowerCase().includes(searchInput) || 
+                book.author.toLowerCase().includes(searchInput) ||
+                book.tags.some(tag => tag.toLowerCase().includes(searchInput))) &&
+                (!activeFilter || book.tags.includes(activeFilter.toLowerCase()))
+            );
+
+            // Aplicar ordenação
+            switch(currentSort) {
+                case 'recent':
+                    // Como não temos data nos livros, mantemos a ordem original
+                    break;
+                case 'alphabetical':
+                    filteredBooks.sort((a, b) => a.title.localeCompare(b.title));
+                    break;
+                case 'relevance':
+                default:
+                    // Mantém a ordem original para relevância
+                    break;
+            }
+
+            filteredBooks.forEach(book => {
+                const bookCard = document.createElement('div');
+                bookCard.className = 'bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300';
+                bookCard.innerHTML = `
+                    <div class="relative">
+                        <img src="${book.coverUrl}" alt="${book.title}" class="w-full h-72 object-cover">
+                        <div class="absolute top-2 right-2 bg-black text-white px-2 py-1 rounded">
+                            <i class="fas fa-download"></i>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h2 class="text-lg font-bold text-black mb-2">${book.title}</h2>
+                        <p class="text-gray-600 text-sm mb-2">Autor: ${book.author}</p>
+                        <p class="text-gray-500 text-xs mb-4">${book.description.substring(0, 100)}...</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex space-x-2">
+                                ${book.tags.map(tag => `<span class="bg-gray-200 text-black text-xs px-2 py-1 rounded-full">${tag}</span>`).join('')}
+                            </div>
+                            <a href="${book.pdfUrl}" 
+                               target="_blank" 
+                               class="text-black hover:text-gray-700 font-medium transition duration-200">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </a>
+                        </div>
+                    </div>
+                `;
+                booksContainer.appendChild(bookCard);
+            });
+        }
+
+        // Adicionar eventos aos botões de filtro
+        const filterButtons = document.querySelectorAll('.space-x-2 button');
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove classe ativa de todos os botões
+                filterButtons.forEach(btn => {
+                    btn.classList.remove('bg-black', 'text-white');
+                    btn.classList.add('bg-gray-200', 'text-black');
+                });
+
+                if (activeFilter === button.textContent.toLowerCase()) {
+                    // Desativar filtro se clicar novamente no mesmo botão
+                    activeFilter = null;
+                } else {
+                    // Ativar novo filtro
+                    activeFilter = button.textContent.toLowerCase();
+                    button.classList.remove('bg-gray-200', 'text-black');
+                    button.classList.add('bg-black', 'text-white');
+                }
+                
+                searchBooks();
+            });
+        });
+
+        // Adicionar evento ao select de ordenação
+        document.querySelector('select').addEventListener('change', (e) => {
+            switch(e.target.value) {
+                case 'Mais Recentes':
+                    currentSort = 'recent';
+                    break;
+                case 'Alfabético':
+                    currentSort = 'alphabetical';
+                    break;
+                default:
+                    currentSort = 'relevance';
+            }
+            searchBooks();
+        });
+
+        document.getElementById('searchInput').addEventListener('input', searchBooks);
+        searchBooks(); // Carregar todos os livros inicialmente
+    </script>
+</body>
+</html>
