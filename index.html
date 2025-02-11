@@ -5,6 +5,7 @@
     <title>Biblioteca Libertária</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script type="module" src="books.js"></script>
 </head>
 <body class="bg-gray-100">
     <div class="min-h-screen flex flex-col">
@@ -40,15 +41,24 @@
 
             <!-- Filtros -->
             <div class="mb-6 flex justify-between items-center">
-                <div class="space-x-2">
-                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm">Economia</button>
-                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm">Política</button>
-                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm">Filosofia</button>
+                <div class="space-x-2 flex flex-wrap gap-2">
+                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm hover:bg-gray-300">Economia</button>
+                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm hover:bg-gray-300">Política</button>
+                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm hover:bg-gray-300">Filosofia</button>
+                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm hover:bg-gray-300">Libertarianismo</button>
+                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm hover:bg-gray-300">Capitalismo</button>
+                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm hover:bg-gray-300">Estado</button>
+                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm hover:bg-gray-300">Direito</button>
+                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm hover:bg-gray-300">Ética</button>
+                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm hover:bg-gray-300">História</button>
+                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm hover:bg-gray-300">Marxismo</button>
+                    <button class="bg-gray-200 text-black px-3 py-1 rounded-full text-sm hover:bg-gray-300">Socialismo</button>
                 </div>
                 <select class="border rounded-full px-3 py-1 text-sm">
                     <option>Mais Relevantes</option>
                     <option>Mais Recentes</option>
                     <option>Alfabético</option>
+                    <option>Por Autor</option>
                 </select>
             </div>
 
@@ -66,62 +76,95 @@
         </footer>
     </div>
 
-    <script>
-        const libertarianBooks = [
-            {
-                title: 'A Sociedade Livre',
-                author: 'Rothbard',
-                description: 'Análise profunda sobre os princípios da liberdade individual e economia.',
-                pdfUrl: 'https://exemplo.com/rothbard.pdf',
-                tags: ['economia', 'liberdade'],
-                coverUrl: 'https://via.placeholder.com/200x300.png?text=Livro+1'
-            },
-            {
-                title: 'Capitalismo e Liberdade',
-                author: 'Milton Friedman',
-                description: 'Obra clássica sobre o papel do livre mercado na sociedade.',
-                pdfUrl: 'https://pdfcoffee.com/qdownload/capitalismo-e-liberdade-friedman-pdf-free.html',
-                tags: ['capitalismo', 'economia'],
-                coverUrl: 'https://pdfcoffee.com/img/200x200/capitalismo-e-liberdade-friedman-pdf-free.jpg'
-            },
-            {
-                title: 'O Caminho da Servidão',
-                author: 'Hayek',
-                description: 'Crítica ao socialismo e defesa da liberdade econômica.',
-                pdfUrl: 'https://exemplo.com/hayek.pdf',
-                tags: ['política', 'socialismo'],
-                coverUrl: 'https://via.placeholder.com/200x300.png?text=Livro+3'
-            }
-        ];
+    <script type="module">
+        import libertarianBooks from './books.js';
 
-        let activeFilter = null;
+        let activeFilters = new Set();
         let currentSort = 'relevance';
 
         function searchBooks() {
             const searchInput = document.getElementById('searchInput').value.toLowerCase();
             const booksContainer = document.getElementById('booksContainer');
+            
+            // Remover contador anterior se existir
+            const existingCounter = document.querySelector('.results-counter');
+            if (existingCounter) {
+                existingCounter.remove();
+            }
+            
             booksContainer.innerHTML = '';
 
-            let filteredBooks = libertarianBooks.filter(book => 
-                (book.title.toLowerCase().includes(searchInput) || 
-                book.author.toLowerCase().includes(searchInput) ||
-                book.tags.some(tag => tag.toLowerCase().includes(searchInput))) &&
-                (!activeFilter || book.tags.includes(activeFilter.toLowerCase()))
-            );
+            let filteredBooks = libertarianBooks.filter(book => {
+                const matchesSearch = 
+                    book.title.toLowerCase().includes(searchInput) || 
+                    book.author.toLowerCase().includes(searchInput) ||
+                    book.description.toLowerCase().includes(searchInput) ||
+                    book.tags.some(tag => tag.toLowerCase().includes(searchInput));
 
-            // Aplicar ordenação
+                // Verificar se o livro corresponde a todos os filtros ativos
+                const matchesFilters = activeFilters.size === 0 || 
+                    Array.from(activeFilters).every(filter =>
+                        book.tags.some(tag => tag.toLowerCase().includes(filter))
+                    );
+
+                return matchesSearch && matchesFilters;
+            });
+
             switch(currentSort) {
                 case 'recent':
-                    // Como não temos data nos livros, mantemos a ordem original
+                    filteredBooks.reverse();
                     break;
                 case 'alphabetical':
-                    filteredBooks.sort((a, b) => a.title.localeCompare(b.title));
+                    filteredBooks.sort((a, b) => {
+                        const titleA = a.title.replace(/^(O |A |Os |As )/, '');
+                        const titleB = b.title.replace(/^(O |A |Os |As )/, '');
+                        return titleA.localeCompare(titleB, 'pt-BR');
+                    });
+                    break;
+                case 'author':
+                    filteredBooks.sort((a, b) => a.author.localeCompare(b.author, 'pt-BR'));
                     break;
                 case 'relevance':
                 default:
-                    // Mantém a ordem original para relevância
+                    if (searchInput) {
+                        filteredBooks.sort((a, b) => {
+                            const scoreA = calculateRelevanceScore(a, searchInput);
+                            const scoreB = calculateRelevanceScore(b, searchInput);
+                            return scoreB - scoreA;
+                        });
+                    }
                     break;
             }
+
+            function calculateRelevanceScore(book, search) {
+                let score = 0;
+                
+                if (book.title.toLowerCase().includes(search)) score += 3;
+                
+                if (book.author.toLowerCase().includes(search)) score += 2;
+                
+                if (book.description.toLowerCase().includes(search)) score += 1;
+                book.tags.forEach(tag => {
+                    if (tag.toLowerCase().includes(search)) score += 1;
+                });
+                
+                return score;
+            }
+
+            const sortSelect = document.querySelector('select');
+            sortSelect.innerHTML = `
+                <option value="relevance">Mais Relevantes</option>
+                <option value="recent">Mais Recentes</option>
+                <option value="alphabetical">Ordem Alfabética</option>
+                <option value="author">Por Autor</option>
+            `;
+            sortSelect.value = currentSort;
+
+            // Atualizar contador de resultados com classe específica
+            const resultsCount = document.createElement('div');
+            resultsCount.className = 'text-gray-600 mb-4 results-counter'; // Adicionar classe para identificação
+            resultsCount.textContent = `${filteredBooks.length} livros encontrados`;
+            booksContainer.parentNode.insertBefore(resultsCount, booksContainer);
 
             filteredBooks.forEach(book => {
                 const bookCard = document.createElement('div');
@@ -153,31 +196,27 @@
             });
         }
 
-        // Adicionar eventos aos botões de filtro
         const filterButtons = document.querySelectorAll('.space-x-2 button');
         filterButtons.forEach(button => {
             button.addEventListener('click', () => {
-                // Remove classe ativa de todos os botões
-                filterButtons.forEach(btn => {
-                    btn.classList.remove('bg-black', 'text-white');
-                    btn.classList.add('bg-gray-200', 'text-black');
-                });
-
-                if (activeFilter === button.textContent.toLowerCase()) {
-                    // Desativar filtro se clicar novamente no mesmo botão
-                    activeFilter = null;
+                const filter = button.textContent.toLowerCase();
+                
+                if (button.classList.contains('bg-black')) {
+                    // Desativar filtro
+                    button.classList.remove('bg-black', 'text-white');
+                    button.classList.add('bg-gray-200', 'text-black');
+                    activeFilters.delete(filter);
                 } else {
-                    // Ativar novo filtro
-                    activeFilter = button.textContent.toLowerCase();
+                    // Ativar filtro
                     button.classList.remove('bg-gray-200', 'text-black');
                     button.classList.add('bg-black', 'text-white');
+                    activeFilters.add(filter);
                 }
                 
                 searchBooks();
             });
         });
 
-        // Adicionar evento ao select de ordenação
         document.querySelector('select').addEventListener('change', (e) => {
             switch(e.target.value) {
                 case 'Mais Recentes':
@@ -186,6 +225,9 @@
                 case 'Alfabético':
                     currentSort = 'alphabetical';
                     break;
+                case 'Por Autor':
+                    currentSort = 'author';
+                    break;
                 default:
                     currentSort = 'relevance';
             }
@@ -193,7 +235,7 @@
         });
 
         document.getElementById('searchInput').addEventListener('input', searchBooks);
-        searchBooks(); // Carregar todos os livros inicialmente
+        searchBooks();
     </script>
 </body>
 </html>
