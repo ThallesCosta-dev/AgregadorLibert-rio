@@ -79,7 +79,7 @@
     <script type="module">
         import libertarianBooks from './books.js';
 
-        let activeFilters = new Set();
+        let activeFilter = null; // Armazena apenas um filtro ativo
         let currentSort = 'relevance';
 
         function searchBooks() {
@@ -101,13 +101,11 @@
                     book.description.toLowerCase().includes(searchInput) ||
                     book.tags.some(tag => tag.toLowerCase().includes(searchInput));
 
-                // Verificar se o livro corresponde a todos os filtros ativos
-                const matchesFilters = activeFilters.size === 0 || 
-                    Array.from(activeFilters).every(filter =>
-                        book.tags.some(tag => tag.toLowerCase().includes(filter))
-                    );
+                // Verificar apenas o filtro ativo (se houver)
+                const matchesFilter = !activeFilter || 
+                    book.tags.some(tag => tag.toLowerCase().includes(activeFilter));
 
-                return matchesSearch && matchesFilters;
+                return matchesSearch && matchesFilter;
             });
 
             switch(currentSort) {
@@ -202,15 +200,23 @@
                 const filter = button.textContent.toLowerCase();
                 
                 if (button.classList.contains('bg-black')) {
-                    // Desativar filtro
+                    // Desativar filtro atual
                     button.classList.remove('bg-black', 'text-white');
                     button.classList.add('bg-gray-200', 'text-black');
-                    activeFilters.delete(filter);
+                    activeFilter = null;
                 } else {
-                    // Ativar filtro
+                    // Desativar filtro anterior (se existir)
+                    if (activeFilter) {
+                        filterButtons.forEach(btn => {
+                            btn.classList.remove('bg-black', 'text-white');
+                            btn.classList.add('bg-gray-200', 'text-black');
+                        });
+                    }
+                    
+                    // Ativar novo filtro
                     button.classList.remove('bg-gray-200', 'text-black');
                     button.classList.add('bg-black', 'text-white');
-                    activeFilters.add(filter);
+                    activeFilter = filter;
                 }
                 
                 searchBooks();
